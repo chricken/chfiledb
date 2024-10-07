@@ -1,7 +1,7 @@
 'use strict';
 
 const settings = {
-    dbPath: './dbs',
+    dbPath: 'dbs/',
 }
 
 export default settings;

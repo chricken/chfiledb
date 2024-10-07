@@ -16,12 +16,12 @@ const chfiledb = {
         autoCreate = true,
         debug = false
     }) {
-        console.log('index', dbName);
-        
-        return fileOp.checkIfExists(dbName).then(
+        return fileOp.checkIfExists({dbName}).then( 
+
             exists => {
-                console.log('index', exists);
-                if (exists) {
+                console.log('exists', exists);
+                
+                if (exists) { 
                     return new Connection(dbName);
                 } else if (autoCreate) {
                     return chfiledb.create(dbName, true).then(
