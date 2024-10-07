@@ -1,0 +1,13 @@
+{
+  "name": "chfiledb",
+  "version": "0.0.1",
+  "description": "A very simple database based on locally stored JSON-files",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "C. Heisch",
+  "license": "ISC"
+}
