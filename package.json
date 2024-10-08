@@ -1,6 +1,6 @@
 {
   "name": "chfiledb",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "description": "A very simple database based on locally stored JSON-files",
   "main": "index.js",
   "type": "module",

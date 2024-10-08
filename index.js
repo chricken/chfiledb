@@ -1,14 +1,27 @@
 'use strict';
 
-import fs from 'fs';
 import settings from './settings.js';
 import Connection from './classes/Connection.js';
 import fileOp from './fileop.js';
 
 const chfiledb = {
     init({ DBPath = false }) {
-        // Wenn der Benutzer einen eigenen Datenpfad verwenden möchte
-        if (DBPath) settings.DBPath = DBPath;
+        return new Promise(resolve => {
+            // Wenn der Benutzer einen eigenen Datenpfad verwenden möchte
+            // Backslashes ersetzen
+            DBPath.replaceAll('\\', '/');
+            
+            // Checken, ob der Pfad mit "/" endet
+            if(DBPath[DBPath.length-1] != '/')DBPath += '/';
+            
+            // Pfad ersetzen
+            settings.dbPath = DBPath;
+            console.log(settings);
+            
+            resolve({
+                status: 'ok'
+            });
+        })
     },
 
     connect({
@@ -16,42 +29,30 @@ const chfiledb = {
         autoCreate = true,
         debug = false
     }) {
-        return fileOp.checkIfExists({dbName}).then( 
+        return fileOp.checkIfExists({ dbName }).then(
 
             exists => {
-                console.log('exists', exists);
-                
-                if (exists) { 
+                if (exists) {
                     return new Connection(dbName);
                 } else if (autoCreate) {
                     return chfiledb.create(dbName, true).then(
                         () => new Connection(dbName)
                     )
                 } else {
-                    if(debug) console.log('Database does not exist and is not allowed to be created automaticaly');
-                    throw(new Error('Database does not exist and is not allowed to be created automaticaly'))
+                    if (debug) console.log('Database does not exist and is not allowed to be created automaticaly');
+                    throw (new Error('Database does not exist and is not allowed to be created automaticaly'))
                 }
             }
         )
     },
-    create(dbName, debug = false) {
-        return new Promise((resolve, reject) => {
-            fs.readdir(settings.dbPath, (err, files) => {
-                // Schauen, ob der Datenbank-Pfad existiert
-                if (err) {
-                    // Fehler, wenn nicht
-                    if (debug) console.log(err);
-                    reject({
-                        msg: 'The Database folder could not be found',
-                    })
-                } else {
-                    // Schauen, ob die gewünschte Datenbank existiert
-                    if (files) {
-                        console.log(files);
+    empty({ dbName, debug = false }) {
 
-                    }
-                }
-            })
+    },
+    create({ name = '', debug = false }) {
+        return new Promise(resolve => {
+            // Schauen, ob der Datenbank-Pfad existiert
+            
+            resolve(fileOp.createDB({name}));
 
         });
     },
@@ -62,3 +63,4 @@ const chfiledb = {
 
 export default chfiledb;
 export const db = chfiledb.db;
+

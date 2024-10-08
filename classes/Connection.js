@@ -1,16 +1,14 @@
 'use strict';
 
 import fileOp from '../fileop.js';
+import settings from '../settings.js';
 
 class Connection {
     constructor(dbName) {
         Object.assign(this, { dbName });
-        this.path = fileOp.pathFiles + dbName + '/';
-        console.log('connected', this.path);
-
+        this.path = settings.dbPath + dbName + '/';
     }
     listOfIDs() {
-        // console.log('IDs', this.path);
 
         return fileOp.loadDirList({ url: this.path }).then(
             res => {
@@ -22,7 +20,6 @@ class Connection {
         ).then(
             res => {
                 // Platzhalter für möglichen Debug-Code
-                // console.log(res);
                 return res;
             }
         ).catch(
@@ -45,22 +42,27 @@ class Connection {
     }
 
     createDoc({ payload = {}, debug = false, overwrite = false }) {
-        return new Promise((resolve, reject) => {
+        return new Promise(resolve => {
+            if (debug) console.log('create', payload);
             if (payload.id) {
-
+                resolve(fileOp.saveJSON({
+                    url: this.path + payload.id + '.json',
+                    payload,
+                    overwrite,
+                    debug
+                }))
             } else {
-                this.getNextID().then(
+                resolve(this.getNextID().then(
                     id => {
                         payload.id = id;
-                        console.log('create', payload);
-                        return fileOp.saveJSON({
-                            url: this.path + id + '.json',
+                        return (fileOp.saveJSON({
+                            url: this.path + payload.id + '.json',
                             payload,
                             overwrite,
                             debug
-                        })
+                        }))
                     }
-                );
+                ))
             }
         })
     }
@@ -77,10 +79,25 @@ class Connection {
     }
 
     loadDocs({ ids = [], debug = false }) {
+        if (!Array.isArray(ids)) return new Promise((resolve => resolve({
+            status: 'err',
+            msg: 'Parameter ids is not an Array'
+        })))
+
         // Diese Methode soll ein Array von IDs laden und die dazugehörigen Dokumente zurückgeben
+        return Promise.all(ids.map(id => this.loadDoc({ id })));
     }
 
-    deleteDoc({ id = {} }) {
+    deleteDoc({ id = '', payload = {} }) {
+        let url = `${this.path}${id || payload.id}.json`;
+        return fileOp.deleteJSON({ url }).then(
+            res => {
+                // Platzhalter für debugging, was auf res zugreifen muss
+                return res
+            }
+        ).catch(
+            console.warn
+        )
     }
 
     updateDoc({ payload = {}, overwrite = false }) {

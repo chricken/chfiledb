@@ -1,13 +1,12 @@
-# Do not use this yet
-
-- Promise based calls
-- No extra software needed
-
 # Overview
-This module allows the use of a tiny and simple Database, which is stored in JSON files. 
+This module allows the use of a tiny and simple database, which is stored documents in JSON files. 
+
+- All methods are returning promises
+- No extra software needed
 
 # Syntax
 All parameters are transferred as named arguments to avoid errors in the parameter transfer
+
 
 All methods have a verbose parameter that controls whether additional output should be generated
 
@@ -15,6 +14,14 @@ All methods have a verbose parameter that controls whether additional output sho
 ## Module Methods
 
 ### init()
+By default the database is being stored in a subfolder of the module. 
+
+init() allows the definition of a custom folder. It expects an absolute path. The folder has to exist.
+
+```
+
+```
+
 
 ## Database Methods
 
@@ -37,6 +44,10 @@ All methods have a verbose parameter that controls whether additional output sho
 ### findDoc()
 
 ### deleteAttribute()
+
+## Store data in a custom folder
+
+## future plans
 
 # Specialities
 This module requires a few things and only spans a few safety nets for developers.

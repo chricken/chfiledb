@@ -9,7 +9,6 @@ const fileOp = {
     pathFiles: '',
     loadDirList({ url = '', debug = false }) {
         return new Promise(resolve => {
-            console.log('load List', url);
             fs.readdir(url, (err, res) => {
                 if (err) {
                     // Wenn ein Fehler geschieht und der debug-Parameter gesetzt ist, mach eine Ausgabe
@@ -25,7 +24,6 @@ const fileOp = {
                 })
             })
         })
-
     },
     loadJSON({ url = '', debug = false }) {
         return new Promise(resolve => {
@@ -56,17 +54,18 @@ const fileOp = {
     saveJSON({ url = '', payload = {}, overwrite = true, debug = false }) {
         return new Promise(resolve => {
             // Muss immer resolven, damit das abfragende Element eine zuverlässige Meldung bekommt
-            if (!url) resolve({
-                status: 'err',
-                msg: 'No path assigned'
-            });
-            else {
-                console.log('save', url, payload);
-                
+            if (!url) {
+                resolve({
+                    status: 'err',
+                    msg: 'No path assigned'
+                });
+            } else {
+                // Prüfen, ob die Datei existiert
                 fs.access(url, err => {
                     if (err || overwrite) {
                         // Datei existiert nicht, kann problemlos geschrieben werden
                         // oder das überschreiben-Flag wurde gesetzt
+
                         fs.writeFile(
                             url,
                             JSON.stringify(payload),
@@ -97,14 +96,76 @@ const fileOp = {
     appendJSON({ }) {
 
     },
-    delete({ }) {
+    createDB({ name, debug = false }) {
+        return new Promise(resolve => {
+            // Eltern-URL aller Datenbank-Ordner
+            let url = settings.dbPath;
+            console.log(url);
+            
 
+            fs.readdir(url, (err, files) => {
+                if (err) {
+                    if (debug) console.log(err);
+                    resolve({
+                        status: 'err',
+                        msg: `The main Database folder ${settings.dbPath} could not be found`
+                    })
+                } else {
+                    // Schauen, ob die gewünschte Datenbank existiert
+                    // Gewünschte URL der neuen Datenbank
+                    url += name + '/';
+                    if (!files.includes(name)) {
+                        fs.mkdir(url, err => {
+                            if (err) {
+                                if (debug) console.log(debug);
+                                resolve({
+                                    status: 'err',
+                                    msg: `Datenbank konnte im Ordner ${url} nicht angelegt werden`
+                                })
+                            } else {
+                                resolve({ status: 'ok' })
+                            }
+                        })
+                    } else {
+                        resolve({ status: 'ok' })
+                    }
+                }
+            })
+        })
+    },
+    deleteJSON({ url = '', debug = false }) {
+        return new Promise(resolve => {
+            fs.access(url, err => {
+                if (!err) {
+                    // Datei existiert, kann gelöscht werden
+                    fs.rm(url, err => {
+                        if (err) {
+                            // Wenn ein Fehler geschieht und der debug-Parameter gesetzt ist, mach eine Ausgabe
+                            if (debug) console.log(err);
+                            resolve({
+                                status: 'err',
+                                msg: err
+                            })
+                        }
+                        else resolve({
+                            status: 'ok'
+                        });
+                    })
+                } else {
+                    // Detei existiert nicht
+                    resolve({
+                        status: 'err',
+                        msg: `File does not exist`
+                    })
+                }
+            })
+        })
     },
     checkIfExists({ dbName }) {
         return new Promise(resolve => {
             // Datei laden und bei Erfolg kann darauf zugegriffen werden
             fs.access(
-                `${fileOp.pathFiles}${dbName}`,
+                `${settings.dbPath}${dbName}`,
                 err => {
                     if (err) resolve({
                         status: 'ok',
