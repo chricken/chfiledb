@@ -8,7 +8,7 @@ class Connection {
         Object.assign(this, { dbName });
         this.path = settings.dbPath + dbName + '/';
     }
-    listOfIDs() {
+    listIDs() {
 
         return fileOp.loadDirList({ url: this.path }).then(
             res => {
@@ -64,32 +64,50 @@ class Connection {
                     }
                 ))
             }
-        })
-    }
-
-    loadDoc({ id = '' }) {
-        return fileOp.loadJSON({ url: this.path + id + '.json' }).then(
-            res => {
-                // Platzhalter für debugging, was auf res zugreifen muss
-                return res
-            }
-        ).catch(
-            console.warn
+        }).then(
+            () => this
         )
     }
 
-    loadDocs({ ids = [], debug = false }) {
-        if (!Array.isArray(ids)) return new Promise((resolve => resolve({
-            status: 'err',
-            msg: 'Parameter ids is not an Array'
-        })))
-
-        // Diese Methode soll ein Array von IDs laden und die dazugehörigen Dokumente zurückgeben
-        return Promise.all(ids.map(id => this.loadDoc({ id })));
+    loadDoc({ id = false, debug = false, ignoreCache = false }) {
+        if (!id) {
+            if (debug) console.log('No ID given');
+            return new Promise(resolve => {
+                resolve({
+                    status: 'err',
+                    msg: 'No ID given'
+                })
+            })
+        }
+        return fileOp.loadJSON({ url: this.path + id + '.json' }).then(
+            res => {
+                if (res.status == 'err' && debug)
+                    console.trace('Error loading a document', res.msg);
+                return res
+            }
+        )
     }
 
-    deleteDoc({ id = '', payload = {} }) {
+    loadDocs({ ids = [], debug = false, ignoreCache = false }) {
+        if (!Array.isArray(ids)) return new Promise((resolve => {
+            if (debug) console.trace('Parameter ids is not an Array', id)
+            resolve({
+                status: 'err',
+                msg: 'Parameter ids is not an Array'
+            })
+        }))
+
+        // Diese Methode soll ein Array von IDs laden und die dazugehörigen Dokumente zurückgeben
+        return Promise.all(ids.map(id => this.loadDoc({ id }))).then(
+            res => res.map(el => el.payload)
+        );
+    }
+
+    deleteDoc({ id = '', payload = false, debug = false }) {
         let url = `${this.path}${id || payload.id}.json`;
+        if (!id && !payload) {
+            if (debug) console.trace('Neither id ')
+        }
         return fileOp.deleteJSON({ url }).then(
             res => {
                 // Platzhalter für debugging, was auf res zugreifen muss
@@ -100,19 +118,77 @@ class Connection {
         )
     }
 
-    updateDoc({ payload = {}, overwrite = false }) {
-        if (overwrite) {
-
-        } else {
-
+    updateDoc({ payload = {}, debug = false }) {
+        if (!payload.id) {
+            if (debug) console.trace('No ID in payload given', payload);
+            return new Promise(resolve => {
+                resolve({
+                    status: 'err',
+                    msg: 'No ID in payload given'
+                })
+            })
         }
+
+        return this.loadDoc({ id: payload.id }).then(
+            // Document erweitern
+            res => {
+                if (res.status == 'err') return res
+                return Object.assign(res.payload, payload)
+            }
+        ).then(
+            // Document speichern
+            res => {
+                if (res.status == 'err') return res
+
+                return this.createDoc({
+                    payload: res,
+                    overwrite: true,
+                    debug
+                })
+            }
+        )
+
     }
 
     findDoc() {
     }
 
-    deleteAttribute() {
+    deleteAttributes({ id = false, attributes = [], debug = false }) {
+        if (!id) {
+            if (debug) console.trace('No ID  given', payload);
+            return new Promise(resolve => {
+                resolve({
+                    status: 'err',
+                    msg: 'No ID given'
+                })
+            })
+        }
 
+        return this.loadDoc({ id }).then(
+            // Document erweitern
+            res => {
+                if (res.status == 'err') return res
+                else {
+                    // Attribute entfernen
+                    console.log(res.payload);
+                    attributes.forEach(attr => {
+                        delete res.payload[attr]
+                    })
+                    return res
+                }
+            }
+        ).then(
+            // Document speichern
+            res => {
+                if (res.status == 'err') return res
+
+                return this.createDoc({
+                    payload: res.payload,
+                    overwrite: true,
+                    debug
+                })
+            }
+        )
     }
 }
 

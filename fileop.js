@@ -40,7 +40,7 @@ const fileOp = {
                         if (debug) console.log(err);
                         resolve({
                             status: 'err',
-                            msg: err
+                            msg: `Document could not be loaded`
                         })
                     }
                     else resolve({
@@ -96,12 +96,10 @@ const fileOp = {
     appendJSON({ }) {
 
     },
-    createDB({ name, debug = false }) {
+    createDB({ dbName, debug = false }) {
         return new Promise(resolve => {
             // Eltern-URL aller Datenbank-Ordner
             let url = settings.dbPath;
-            console.log(url);
-            
 
             fs.readdir(url, (err, files) => {
                 if (err) {
@@ -113,8 +111,8 @@ const fileOp = {
                 } else {
                     // Schauen, ob die gewünschte Datenbank existiert
                     // Gewünschte URL der neuen Datenbank
-                    url += name + '/';
-                    if (!files.includes(name)) {
+                    url += dbName + '/';
+                    if (!files.includes(dbName)) {
                         fs.mkdir(url, err => {
                             if (err) {
                                 if (debug) console.log(debug);
@@ -132,6 +130,58 @@ const fileOp = {
                 }
             })
         })
+    },
+    deleteDB({ dbName, debug = false }) {
+        
+        let url = settings.dbPath;
+
+        return new Promise(resolve => {
+
+            // console.log(url);
+            fs.readdir(url + dbName, (err, files) => {
+                if (err && debug) console.log(err);
+                if (!err) {
+                    // Alle enthaltenen Dateien löschen
+                    resolve(Promise.all(files.map(file => {
+                        return new Promise(resolve => {
+                            // Eine Datei löschen
+                            fs.rm(url + dbName + '/' + file, err => {
+                                if (!err) {
+                                    resolve(file)
+                                } else {
+                                    if (debug) console.log(file + ' could not be deleted');
+                                    resolve('err ' + file)
+                                }
+                            })
+                        })
+                    })))
+                } else {
+                    // Wenn es einen Fehler gegeben hat, dann existiert der Ordner nicht und muss nicht gelöscht werden
+                    resolve({
+                        status: 'ok'
+                    })
+                }
+            })
+        }).then(
+            res => {
+                return new Promise(resolve => {
+                    // Verzeichnis löschen, nachdem der Inhalt entfernt wurde
+                    fs.rmdir(url + dbName, err => {
+                        if (err) {
+                            if (debug) console.log(err);
+                            resolve({
+                                status: 'err',
+                                msg: 'Error while deleting the database'
+                            })
+                        } else {
+                            resolve({
+                                status: 'ok'
+                            })
+                        }
+                    })
+                })
+            }
+        )
     },
     deleteJSON({ url = '', debug = false }) {
         return new Promise(resolve => {
@@ -161,7 +211,9 @@ const fileOp = {
             })
         })
     },
-    checkIfExists({ dbName }) {
+    checkIfExists({ dbName = 'empty' }) {
+        // console.log('checkIfExists', dbName);
+
         return new Promise(resolve => {
             // Datei laden und bei Erfolg kann darauf zugegriffen werden
             fs.access(
