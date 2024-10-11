@@ -4,6 +4,8 @@ import settings from './settings.js';
 import Connection from './classes/Connection.js';
 import fileOp from './fileop.js';
 
+import cache from './cache.js';
+
 const chfiledb = {
     init({ DBPath = false } = {}) {
         return new Promise(resolve => {
@@ -30,6 +32,9 @@ const chfiledb = {
         debug = false
     } = {}) {
         // console.log('connect', dbName);
+        // Cache-Objekt anlegen
+        if (!cache[dbName])
+            cache[dbName] = {};
 
         return fileOp.checkIfExists({ dbName }).then(
 

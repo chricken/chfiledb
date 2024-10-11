@@ -19,7 +19,7 @@ import chFileDB from 'chfiledb';
 ```
 
 ## Caching
-To be done
+Documents that are loaded, created or saved are stored in a cache. Subsequent read accesses then access the object in RAM instead of the file, which speeds up reading considerably.
 
 ## Module Methods
 
@@ -36,7 +36,7 @@ chfiledb.init({ DBPath: 'C:/Users/alfa/Desktop/data' }).then(
     console.warn
 )
 ```
-
+---
 ## Database Methods
 The so-called database methods allow the manipulation of entire databases. This allows databases to be created, deleted and connected.
 
@@ -56,7 +56,7 @@ chfiledb.create({ name: 'mydb'}).then(
     console.warn
 )
 ```
-
+---
 ### delete()
 Deletes a database.
 
@@ -69,7 +69,7 @@ chFileDB.delete({ dbName: 'myDB' }).then(
     console.warn
 )
 ```
-
+---
 ### connect()
 The connect() method creates a connection to the database. Actually, it checks, if the database is there and returns an object to interact with the database. See below.
 
@@ -90,7 +90,7 @@ chFileDB.connect({
     console.warn
 )
 ```
-
+---
 ## Document Methods
 The document methods are contained in the return of the connect() method.
 
@@ -108,7 +108,7 @@ chFileDB.connect({ dbName: 'myDB' }).then(
     console.warn
 )
 ```
-
+---
 ### createDoc()
 This method creates a new document in the connected database.
 The method can get the following parameters.
@@ -148,11 +148,13 @@ chFileDB.connect({
     console.warn
 )
 ```
-
+---
 ### loadDoc()
 This method is loading a single document with a given ID.
 
 **id**: ID of the document to be loaded. This parameter is *required*, so no default provided.
+
+**ignoreCache**: The cache is ignored and the data record is read from the file.
 
 **debug**: Gives additional outputs in case of an error. Defaults to *false*.
 
@@ -165,12 +167,14 @@ chFileDB.connect({ dbName: 'myDB' }).then(
     console.warn
 )
 ```
-
+---
 ### loadDocs()
 This method is loading a bunch of documents based on a given array of IDs.
 An ID, that doesn't lead to a document, returns undefined.
 
 **ids**: Expects an array of IDs of the documents to be loaded.
+
+**ignoreCache**: The cache is ignored and the data record is read from the file.
 
 **debug**: Gives additional outputs in case of an error. Defaults to *false*.
 
@@ -189,7 +193,7 @@ chFileDB.connect({ dbName: 'myDB' }).then(
     console.warn
 )
 ```
-
+---
 ### updateDoc()
 This method updates and adds attributes into a document.
 The attributes of the document remain unaffected unless they are given a new value.
@@ -226,7 +230,7 @@ chFileDB.connect({ dbName: 'myDB' }).then(
 //  anAttr: 1000
 // }
 ```
-    
+---    
 ### deleteDoc()
 This method deletes a single document. There is no security check or backup so be sure, that you indeed want to delete the document.
 
@@ -248,18 +252,54 @@ chFileDB.connect({
     })
 )
 ```
-
+---
 ### hideDoc()
-This method shall hide a document as an alternative to delete it.
+This method hides a document as an alternative to delete it.
 Hidden documents are intended to be treated just like deleted documents. But with the possibility to regain the data.
 
-To be done
+**id**: ID of the document to be hidden
 
+**debug**: Gives additional outputs in case of an error. Defaults to *false*.
+
+```
+chFileDB.connect({ dbName: 'myDB' }).then(
+    conn => conn.hideDoc({
+        id: 'l5gg71jl90g',
+    })
+).then(
+    console.log
+).catch(
+    console.warn
+)
+```
+---
+### unhideDoc()
+This method unhides a document, that has been hidden beforehand.
+
+
+**id**: ID of the document to be unhidden
+
+**debug**: Gives additional outputs in case of an error. Defaults to *false*.
+
+```
+chFileDB.connect({ dbName: 'myDB' }).then(
+    conn => conn.unhideDoc({
+        id: 'l5gg71jl90g',
+    })
+).then(
+    console.log
+).catch(
+    console.warn
+)
+```
+
+---
 ### findDoc()
 This method will search for documents that fit a given pattern.
 
 To be done
 
+---
 ### deleteAttribute()
 This method deletes given attributes from a document.
 
@@ -298,3 +338,5 @@ chFileDB.connect({ dbName: 'myDB' }).then(
 //  customNum: 13
 // }
 ```
+
+---
