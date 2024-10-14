@@ -78,7 +78,8 @@ const fileOp = {
                                     })
                                 } else {
                                     resolve({
-                                        status: 'ok'
+                                        status: 'ok',
+                                        payload
                                     })
                                 }
                             })
@@ -132,7 +133,7 @@ const fileOp = {
         })
     },
     deleteDB({ dbName, debug = false }) {
-        
+
         let url = settings.dbPath;
 
         return new Promise(resolve => {

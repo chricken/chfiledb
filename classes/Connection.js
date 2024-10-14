@@ -66,8 +66,8 @@ class Connection {
                     id => {
                         payload.id = id;
                         // Cache beschreiben
-                        console.log('cache', JSON.stringify(cache));
-                        console.log('writeCache', this.dbName);
+                        // console.log('cache', JSON.stringify(cache));
+                        // console.log('writeCache', this.dbName);
 
                         cache[this.dbName][payload.id] = payload;
 
@@ -83,7 +83,15 @@ class Connection {
                 ))
             }
         }).then(
-            () => this
+            res => {
+                // console.log(res, this);
+
+                return {
+                    status: res.status,
+                    connection: this,
+                    doc: res.payload
+                }
+            }
         )
     }
 
@@ -93,10 +101,12 @@ class Connection {
             return new Promise(resolve => {
                 resolve({
                     status: 'err',
-                    msg: 'No ID given'
+                    msg: 'No ID given',
+                    connection: this
                 })
             })
         }
+
         console.log('searchCache', cache[this.dbName]);
 
         if (cache[this.dbName][id] && !ignoreCache) {
@@ -104,7 +114,8 @@ class Connection {
                 resolve({
                     status: 'ok',
                     cached: true,
-                    payload: cache[this.dbName][id]
+                    doc: cache[this.dbName][id],
+                    connection: this,
                 })
             })
         } else {
@@ -115,17 +126,23 @@ class Connection {
                     else if (res.payload.hidden) {
                         return {
                             status: 'err',
-                            msg: 'Document is hidden'
+                            msg: 'Document is hidden',
+                            connection: this
                         }
                     }
                     else {
-                        console.log('writeCache', this.dbName, cache, id, res.payload);
+                        // console.log('writeCache', this.dbName, cache, id, res.payload);
 
                         cache[this.dbName][id] = res.payload;
-                        console.log('writtenCache', cache);
+                        // console.log('writtenCache', cache);
                         res.cached = false;
-                        console.log(cache);
-                        return res
+                        console.log('res 139', res);
+                        return {
+                            status: 'ok',
+                            connection: this,
+                            doc: res.payload,
+                            cached: false,
+                        }
                     }
                 }
             )
@@ -159,23 +176,40 @@ class Connection {
         }
 
         return this.loadDoc({ id: payload.id }).then(
+
             // Document erweitern
             res => {
+                console.log(res);
                 if (res.status == 'err') return res
-                return Object.assign(res.payload, payload)
+                let doc = res.doc;
+                Object.assign(doc, payload);
+                return res;
             }
         ).then(
             // Document speichern
             res => {
+                console.log('res 189', res);
+                
                 if (res.status == 'err') return res
 
                 return this.createDoc({
-                    payload: res,
+                    payload: res.doc,
                     overwrite: true,
                     debug
                 })
             }
         )
+        /*.then(
+            res => {
+                console.log('return 203', res);
+                
+                return {
+                    status: res.status,
+                    doc: res.payload,
+                    connection: this
+                }
+            }
+        )*/
     }
 
     findDoc() {
