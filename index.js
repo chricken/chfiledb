@@ -76,7 +76,12 @@ const chfiledb = {
             // Schauen, ob der Datenbank-Pfad existiert
             resolve(fileOp.createDB({ dbName }))
         }).then(
-            () => new Connection(dbName)
+            () => {
+                return {
+                    status: 'ok',
+                    connection: new Connection(dbName)
+                }
+            }
         );
     },
 

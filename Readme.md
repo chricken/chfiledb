@@ -31,6 +31,9 @@ By default the database is being stored in a subfolder of the module.
 Parameter
 - **DBPath** Absolute operating system path, where your databases will be stored.
 
+Returning object contains:
+- **status** The status of the operation
+
 ```
 import chfiledb from 'chfiledb';
 chfiledb.init({ DBPath: 'C:/Users/alfa/Desktop/data' }).then(
@@ -41,14 +44,15 @@ chfiledb.init({ DBPath: 'C:/Users/alfa/Desktop/data' }).then(
 ```
 ---
 ### create()
-Creates a new database. 
-
-Returning Object contains
-- **connection** Object to work with the created database immediately.
+Creates a new database with the given dbName as ID. 
 
 Parameters
 - **dbName**: Defines the name of the new database. The name is case sensitive. This parameter is *required*, so no default provided.
 - **debug**: Gives additional outputs in case of an error. Defaults to *false*.
+
+Returning Object contains
+- **status**: The status of the operation
+- **connection**: Object to work with the created database immediately.
 
 
 ```
@@ -60,9 +64,14 @@ chfiledb.create({ name: 'mydb'}).then(
 ```
 ---
 ### delete()
-Deletes a database.
+Deletes a database with the give dbName as ID.
 
-**dbName**: Defines the name of the database to be deleted. The name is case sensitive. This parameter is *required*, so no default provided.
+Parameters
+- **dbName**: Defines the name of the database to be deleted. The name is case sensitive. This parameter is *required*, so no default provided.
+- **debug**: Gives additional outputs in case of an error. Defaults to *false* 
+
+Returning object contains:
+- **status**: The status of the operation
 
 ```
 chFileDB.delete({ dbName: 'myDB' }).then(
@@ -79,6 +88,9 @@ Parameters
 - **name**: Defines the name of the database to be connected to. This parameter is *required*, so no default provided.
 - **autoCreate**: Controls whether the database should be created automatically if it does not exist. Defaults to *true*.
 - **debug**: Gives additional outputs in case of an error. Defaults to *false* 
+
+Returning Object contains
+- **connection**: Object to work with the created database immediately.
 
 ```
 chFileDB.connect({
@@ -100,6 +112,10 @@ This method creates an array of all existing documents in the connected database
 
 This method does not use any parameter.
 
+Returning object contains:
+- **status**: The status of the operation
+- **payload**: Array with the IDs
+
 ```
 chFileDB.connect({ dbName: 'myDB' }).then(
     conn => conn.listIDs()
@@ -114,15 +130,15 @@ chFileDB.connect({ dbName: 'myDB' }).then(
 This method creates a new document in the connected database.
 The method can get the following parameters.
 
-Returning object contains:
-- **status** The status of the operation
-- **connection object** To chain more methods
-- **payload** The Object, that has been written to the database
-
 Parameters:
 - **payload**: Contains an object to be stored in the document. If the object doesn't contain an attribut *id*, it will be created automatically.
 - **overwrite**: If set to true, a document with the same id will be overwritten. There will be no confirmation and no backup. Defaults to false.
 - **debug**: Gives additional outputs in case of an error. Defaults to *false*.
+
+Returning object contains:
+- **status**: The status of the operation
+- **connection object**: To chain more methods
+- **payload**: The Object, that has been written to the database
 
 
 ```
@@ -155,16 +171,16 @@ chFileDB.connect({
 ### loadDoc()
 This method is loading a single document with a given ID.
 
-Returning object contains
-- **status** Status of the operation
-- **doc** Document as stored currently
-- **connection** Connection to the database to chain more operations
-- **cached** Info, if the loaded data has been read from cache
-
 Parameters
 - **id**: ID of the document to be loaded. This parameter is *required*, so no default provided.
 - **ignoreCache**: The cache is ignored and the data record is read from the file.
 - **debug**: Gives additional outputs in case of an error. Defaults to *false*.
+
+Returning object contains
+- **status**: Status of the operation
+- **doc**: Document as stored currently
+- **connection**: Connection to the database to chain more operations
+- **cached**: Info, if the loaded data has been read from cache
 
 ```
 chFileDB.connect({ dbName: 'myDB' }).then(
@@ -178,12 +194,16 @@ chFileDB.connect({ dbName: 'myDB' }).then(
 ---
 ### loadDocs()
 This method is loading a bunch of documents based on a given array of IDs.
-An ID, that doesn't lead to a document, returns undefined.
 
 Parameters
 - **ids**: Expects an array of IDs of the documents to be loaded.
 - **ignoreCache**: The cache is ignored and the data record is read from the file.
 - **debug**: Gives additional outputs in case of an error. Defaults to *false*.
+
+Returning object contains
+- **status**: Status of the operation
+- **docs**: Array with the documents referred to by the IDs. An ID, that doesn't lead to a document, returns undefined.
+- **connection**: Connection to the database to chain more operations
 
 ```
 chFileDB.connect({ dbName: 'myDB' }).then(
@@ -205,14 +225,14 @@ chFileDB.connect({ dbName: 'myDB' }).then(
 This method updates and adds attributes into a document.
 The attributes of the document remain unaffected unless they are given a new value.
 
-Returning object contains
-- **status** Status of the operation
-- **doc** Document as stored currently
-- **connection** Connection to the database to chain more operations
-
 Parameters
-- **payload** The attributes to be updated or added. The payload has to contain the ID of the document to be updated.
+- **payload**: The attributes to be updated or added. The payload has to contain the ID of the document to be updated.
 - **debug**: Gives additional outputs in case of an error. Defaults to *false*.
+
+Returning object contains
+- **status**: Status of the operation
+- **doc**: Document as stored currently
+- **connection**: Connection to the database to chain more operations
 
 ```
 // Document before updating
@@ -244,13 +264,13 @@ chFileDB.connect({ dbName: 'myDB' }).then(
 ### deleteDoc()
 This method deletes a single document. There is no security check or backup so be sure, that you indeed want to delete the document.
 
-It expects the id of the document to delete. Instead, the whole object can be provided, where the method picks the id from.
-Providing the id is prefered.
-
 Parameters
 - **id**: The id of the document to delete. This parameter is *required*, so no default provided.
-- **payload**: The whole object to be deleted. The method takes the id from that object.
+- **payload**: Instead of an ID, you can transfer the object to be deleted. The method then takes the id from that object.
 - **debug**: Gives additional outputs in case of an error. Defaults to *false*.
+
+Returning object contains
+- **status**: Status of the operation
 
 ```
 chFileDB.connect({
@@ -270,6 +290,11 @@ Parameters
 - **id**: ID of the document to be hidden
 - **debug**: Gives additional outputs in case of an error. Defaults to *false*.
 
+Returning object contains
+- **status**: Status of the operation
+- **doc**: Document as stored currently
+- **connection**: Connection to the database to chain more operations       
+
 ```
 chFileDB.connect({ dbName: 'myDB' }).then(
     conn => conn.hideDoc({
@@ -285,9 +310,14 @@ chFileDB.connect({ dbName: 'myDB' }).then(
 ### unhideDoc()
 This method unhides a document, that has been hidden beforehand.
 
-Paremeters
+Parameters
 - **id**: ID of the document to be unhidden
 - **debug**: Gives additional outputs in case of an error. Defaults to *false*.
+
+Returning object contains
+- **status**: Status of the operation
+- **doc**: Document as stored currently
+- **connection**: Connection to the database to chain more operations   
 
 ```
 chFileDB.connect({ dbName: 'myDB' }).then(
@@ -312,9 +342,14 @@ To be done
 This method deletes given attributes from a document.
 
 Parameters
-- **id** Document ID, in which the attribute shall be removed.
-- **attributes** An array with te attribute key to be remove. 
+- **id**: Document ID, in which the attribute shall be removed.
+- **attributes**: An array with te attribute key to be remove. 
 - **debug**: Gives additional outputs in case of an error. Defaults to *false*.
+
+Returning object contains
+- **status**: Status of the operation
+- **doc**: Document as stored currently
+- **connection**: Connection to the database to chain more operations 
 
 ```
 // Document before updating

@@ -21,16 +21,18 @@ class Connection {
         ).then(
             res => {
                 // Platzhalter für möglichen Debug-Code
-                return res;
+                return {
+                    status: 'ok',
+                    payload: res
+                }
             }
-        ).catch(
-            console.warn
         )
     }
 
     getNextID() {
         return this.listIDs().then(
-            ids => {
+            res => {
+                let ids = res.payload;
                 let myID = (Math.random() * 1e17).toString(36);
                 while (ids.includes(myID))
                     myID = (Math.random() * 1e17).toString(36);
@@ -160,7 +162,15 @@ class Connection {
 
         // Diese Methode soll ein Array von IDs laden und die dazugehörigen Dokumente zurückgeben
         return Promise.all(ids.map(id => this.loadDoc({ id, debug, ignoreCache }))).then(
-            res => res.map(el => el.payload)
+            res => {
+
+                return {
+                    status: 'ok',
+                    connection: this,
+                    docs: res.map(el => el.doc)
+                }
+
+            }
         );
     }
 
@@ -189,7 +199,7 @@ class Connection {
             // Document speichern
             res => {
                 console.log('res 189', res);
-                
+
                 if (res.status == 'err') return res
 
                 return this.createDoc({
@@ -250,8 +260,8 @@ class Connection {
             // Document verstecken
             res => {
                 if (res.status == 'err') return res
-                res.payload.hidden = true;
-                return res.payload;
+                res.doc.hidden = true;
+                return res.doc;
             }
         ).then(
             // Document speichern
@@ -324,9 +334,9 @@ class Connection {
                 if (res.status == 'err') return res
                 else {
                     // Attribute entfernen
-                    console.log(res.payload);
+                    console.log(337, res);
                     attributes.forEach(attr => {
-                        delete res.payload[attr]
+                        delete res.doc[attr]
                     })
                     return res
                 }
@@ -337,7 +347,7 @@ class Connection {
                 if (res.status == 'err') return res
 
                 return this.createDoc({
-                    payload: res.payload,
+                    payload: res.doc,
                     overwrite: true,
                     debug
                 })
